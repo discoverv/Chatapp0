@@ -1,29 +1,38 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Servir ficheiros da pasta public
-app.use(express.static('public'));
+app.use(express.static(__dirname));
 
-io.on('connection', (socket) => {
-    console.log('Um utilizador entrou no chat!');
+io.on("connection", (socket) => {
+    console.log("Novo utilizador conectado");
 
-    socket.on('chat message', (data) => {
-        io.emit('chat message', data);
+    socket.on("setName", (name) => {
+        socket.username = name;
+        socket.broadcast.emit("message", `${name} entrou no chat!`);
     });
 
-    socket.on('typing', (name) => {
-        socket.broadcast.emit('typing', name);
+    socket.on("message", (data) => {
+        io.emit("message", `${socket.username}: ${data}`);
     });
 
-    socket.on('disconnect', () => {
-        console.log('Um utilizador saiu.');
+    socket.on("typing", () => {
+        socket.broadcast.emit("typing", `${socket.username} está a escrever...`);
+    });
+
+    socket.on("stopTyping", () => {
+        socket.broadcast.emit("stopTyping");
+    });
+
+    socket.on("disconnect", () => {
+        io.emit("message", `${socket.username} saiu do chat.`);
     });
 });
 
 server.listen(3000, () => {
-    console.log('Servidor a correr na porta 3000');
+    console.log("Servidor a correr em http://localhost:3000");
 });
