@@ -1,36 +1,29 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
-
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Servir ficheiros estáticos (frontend)
-app.use(express.static(path.join(__dirname, "public")));
+// Servir ficheiros da pasta public
+app.use(express.static('public'));
 
-// Gestão de conexões e mensagens
-io.on("connection", (socket) => {
-    console.log("Novo utilizador conectado!");
+io.on('connection', (socket) => {
+    console.log('Um utilizador entrou no chat!');
 
-    // Quando uma mensagem é enviada
-    socket.on("mensagem", (data) => {
-        io.emit("mensagem", data); // Envia a mensagem para todos os utilizadores
+    socket.on('chat message', (data) => {
+        io.emit('chat message', data);
     });
 
-    // Quando um utilizador está a escrever
-    socket.on("digitando", (username) => {
-        socket.broadcast.emit("digitando", username);
+    socket.on('typing', (name) => {
+        socket.broadcast.emit('typing', name);
     });
 
-    // Quando o utilizador se desconecta
-    socket.on("disconnect", () => {
-        console.log("Utilizador desconectado");
+    socket.on('disconnect', () => {
+        console.log('Um utilizador saiu.');
     });
 });
 
-// Iniciar o servidor
 server.listen(3000, () => {
-    console.log("Servidor a correr em http://localhost:3000");
+    console.log('Servidor a correr na porta 3000');
 });
